@@ -1,0 +1,5 @@
+yt-dlp==2023.10.07
+pytesseract==0.3.10
+opencv-python==4.8.0.74
+python-docx==0.8.11
+reportlab==3.6.12
