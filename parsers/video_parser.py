@@ -1,39 +1,52 @@
-from pytubefix import YouTube
 import logging
-import cv2
 import os
+import cv2
+import yt_dlp
 
 logging.basicConfig(level=logging.DEBUG)
 
-def on_progress(stream, chunk, bytes_remaining):
-    total_size = stream.filesize
-    bytes_downloaded = total_size - bytes_remaining
-    percentage_of_completion = bytes_downloaded / total_size * 100
-    logging.debug(f'Download progress: {percentage_of_completion:.2f}%')
-
 def download_video(url, output_path):
+    """Скачивает видео с YouTube, используя yt-dlp"""
     try:
-        yt = YouTube(url, on_progress_callback=on_progress)
-        stream = yt.streams.filter(progressive=True, file_extension='mp4').first()
-        if stream:
-            logging.debug(f"Starting download of {url}")
-            stream.download(output_path)
-            logging.debug(f"Finished download of {url}")
-            return os.path.join(output_path, stream.default_filename)
-        else:
-            logging.error("No suitable streams found.")
-            raise Exception("No suitable streams found.")
+        ydl_opts = {
+            'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
+            'format': 'bestvideo+bestaudio/best',
+            'progress_hooks': [on_progress]
+        }
+
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            logging.debug(f"Downloading video from {url}")
+            info_dict = ydl.extract_info(url, download=True)
+            video_title = info_dict.get('title', None)
+            file_name = os.path.join(output_path, f"{video_title}.mp4")
+            if os.path.exists(file_name):
+                logging.debug(f"Download complete: {file_name}")
+                return file_name
+            else:
+                logging.error("Download failed or file was not created.")
+                return None
     except Exception as e:
         logging.error(f"Error downloading video: {e}")
-        raise
+        return None
+
+def on_progress(d):
+    if d['status'] == 'downloading':
+        p = d['_percent_str'].strip()
+        logging.debug(f"Download progress: {p}")
 
 def extract_frames(video_path):
-    cap = cv2.VideoCapture(video_path)
-    frames = []
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            break
-        frames.append(frame)
-    cap.release()
-    return frames
+    """Извлекает кадры из видеофайла"""
+    try:
+        cap = cv2.VideoCapture(video_path)
+        frames = []
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
+            frames.append(frame)
+        cap.release()
+        logging.debug(f"Extracted {len(frames)} frames from {video_path}")
+        return frames
+    except Exception as e:
+        logging.error(f"Error extracting frames from {video_path}: {e}")
+        return []
