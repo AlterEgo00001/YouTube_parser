@@ -4,6 +4,9 @@ from pytube import YouTube, Playlist
 from parsers.video_parser import download_video, extract_frames
 from parsers.image_text_extractor import associate_text_with_images
 from parsers.document_generator import generate_docx, generate_pdf
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 def main():
     parser = argparse.ArgumentParser(description="YouTube Video Parser")
@@ -14,6 +17,7 @@ def main():
     if 'playlist' in args.url:
         pl = Playlist(args.url)
         for video_url in pl.video_urls:
+            logging.debug(f"Processing video URL: {video_url}")
             process_video(video_url, args.output)
     else:
         process_video(args.url, args.output)
