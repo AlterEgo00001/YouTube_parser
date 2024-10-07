@@ -1,6 +1,7 @@
 function parseVideo() {
   const url = document.getElementById('url').value;
   const format = document.getElementById('format').value;
+  const status = document.getElementById('status');
   const videoId = getYouTubeVideoId(url);
 
   if (!videoId) {
@@ -8,13 +9,18 @@ function parseVideo() {
     return;
   }
 
+  status.textContent = 'Fetching video details...';
+
   fetch(`https://www.googleapis.com/youtube/v3/videos?id=${videoId}&key=YOUR_API_KEY&part=snippet,contentDetails`)
     .then(response => response.json())
     .then(data => {
       if (data.items.length === 0) {
         alert('Video not found');
+        status.textContent = 'Video not found';
         return;
       }
+
+      status.textContent = 'Processing video data...';
 
       const videoData = data.items[0];
       const videoTitle = videoData.snippet.title;
@@ -22,8 +28,13 @@ function parseVideo() {
 
       const output = `Title: ${videoTitle}\n\nDescription: ${videoDescription}\n\nFormat: ${format}`;
       downloadFile(output, format === 'pdf' ? 'output.pdf' : 'output.docx');
+
+      status.textContent = 'Download ready';
     })
-    .catch(error => console.error('Error:', error));
+    .catch(error => {
+      console.error('Error:', error);
+      status.textContent = 'Error occurred: ' + error.message;
+    });
 }
 
 function getYouTubeVideoId(url) {
