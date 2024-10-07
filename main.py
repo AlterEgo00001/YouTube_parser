@@ -1,6 +1,6 @@
 import argparse
 import os
-from pytube import YouTube, Playlist
+from pytubefix import YouTube, Playlist
 from parsers.video_parser import download_video, extract_frames
 from parsers.image_text_extractor import associate_text_with_images
 from parsers.document_generator import generate_docx, generate_pdf
