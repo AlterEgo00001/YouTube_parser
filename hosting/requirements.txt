@@ -1,0 +1,7 @@
+flask
+youtube_dl
+opencv-python
+pytesseract
+Pillow
+reportlab
+python-docx
